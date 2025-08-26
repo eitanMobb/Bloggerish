@@ -1,0 +1,28 @@
+{
+  "name": "bloggerish",
+  "version": "1.0.0",
+  "description": "A simple and elegant blog application built with Node.js and Express",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dompurify": "^3.2.6",
+    "express": "^4.18.2",
+    "jsdom": "^26.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "blog",
+    "express",
+    "nodejs",
+    "web",
+    "application"
+  ],
+  "author": "Bloggerish Team",
+  "license": "MIT"
+}
