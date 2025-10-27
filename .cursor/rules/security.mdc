@@ -13,10 +13,11 @@ alwaysApply: true
 When Mobb produces a fix:
 - Extract the vulnerability type (e.g., "Command Injection", "SQL Injection", "XSS")
 - Create a generic prevention rule for that vulnerability type
-- **If rule file exists**: Add new information to the existing `.cursor/rules/[vulnerability-type].mdc` file
+- **If rule file exists**: Add new information and code samples to the existing `.cursor/rules/[vulnerability-type].mdc` file 
 - **If rule file doesn't exist**: Create a new rule file: `.cursor/rules/[vulnerability-type].mdc` (e.g., `command-injection.mdc`)
 - Add the rule with clear, actionable guidance and `alwaysApply: true`
 - Make the rule specific enough to prevent the issue but generic enough to apply broadly
+- Include the reported vulnerable code and applied fix as code examples
 - Update the main security.mdc to reference the rule file (if it's new)
 
 ### CRITICAL: Rule File Update Requirements
