@@ -1,0 +1,46 @@
+---
+alwaysApply: true
+---
+# Security Rules for Mobb Vulnerability Scanning
+
+## MANDATORY: Mobb Scan Protocol
+**CRITICAL**: After implementing any new features or making code changes, before committing anything to the repo, you MUST:
+1. **ALWAYS run Mobb scan after implementation**: Use `mcp_mobb-mcp_scan_and_fix_vulnerabilities` tool to scan the new/modified code
+2. **Add security rules**: For EVERY fix produced by Mobb, no matter which Mobb tool was used, add a new generic security rule to a separate rule file in `.cursor/rules/` to prevent the vulnerability type from recurring
+3. **Document the process**: Always explain what security measures were taken and any vulnerabilities found
+
+## Rule Addition Protocol
+When Mobb produces a fix:
+- Extract the vulnerability type (e.g., "Command Injection", "SQL Injection", "XSS")
+- Create a generic prevention rule for that vulnerability type
+- **If rule file exists**: Add new information to the existing `.cursor/rules/[vulnerability-type].mdc` file
+- **If rule file doesn't exist**: Create a new rule file: `.cursor/rules/[vulnerability-type].mdc` (e.g., `command-injection.mdc`)
+- Add the rule with clear, actionable guidance and `alwaysApply: true`
+- Make the rule specific enough to prevent the issue but generic enough to apply broadly
+- Update the main security.mdc to reference the rule file (if it's new)
+
+### CRITICAL: Rule File Update Requirements
+When updating an existing rule file:
+- **NEVER replace existing content** - always append new information
+- **Maintain existing format and structure** - follow the same markdown formatting, bullet points, and organization
+- **Preserve all existing rules and examples** - only add new information
+- **Update metadata appropriately** - increment version numbers, update dates, add new status entries
+- **Ensure consistency** - new content should match the existing style and tone
+
+## Active Security Rules
+
+## Enforcement
+- This rule is ALWAYS APPLIED and cannot be bypassed
+- Any AI assistant that fails to follow this protocol should be corrected immediately
+- Team members should verify that security scans are run before code reviews
+
+## ⚠️ CRITICAL CHECKLIST FOR AI ASSISTANTS ⚠️
+**BEFORE completing any coding task, verify you have:**
+- [ ] Run Mobb security scan on new/modified code
+- [ ] Applied ALL security fixes provided by Mobb
+- [ ] Created/updated vulnerability-specific rule files (**APPEND-ONLY** - never replace existing content)
+- [ ] **UPDATED THIS security.mdc file to reference new rule files**
+- [ ] Documented all security measures taken
+- [ ] **Verified that existing rule content was preserved and only new information was added**
+
+**FAILURE TO COMPLETE ANY OF THESE STEPS IS A SECURITY VIOLATION**
