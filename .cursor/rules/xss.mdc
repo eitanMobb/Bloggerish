@@ -1,0 +1,156 @@
+---
+title: Cross-Site Scripting (XSS) Prevention
+description: Security rules to prevent XSS vulnerabilities in web applications
+version: 1.0.0
+lastUpdated: 2025-10-29
+alwaysApply: true
+status:
+  - date: 2025-10-29
+    fixesApplied: 6
+    vulnerabilityType: XSS
+    severityLevel: High
+---
+
+# Cross-Site Scripting (XSS) Prevention
+
+## Overview
+Cross-Site Scripting (XSS) vulnerabilities occur when user-supplied data is included in HTML output without proper sanitization. Attackers can inject malicious scripts that execute in other users' browsers, potentially stealing sensitive data or performing unauthorized actions.
+
+## Critical Rules
+
+### 1. Always Sanitize User Input Before Rendering
+**NEVER** directly interpolate user input into HTML templates without sanitization.
+
+#### ❌ Vulnerable Code Examples
+
+```javascript
+// Vulnerable: Direct interpolation of user input in search query
+app.get('/search', (req, res) => {
+    const query = req.query.q || '';
+    const html = `
+        <input type="text" name="q" value="${query}">
+        <h3>Results for "${query}":</h3>
+        <p>No posts found for "${query}"</p>
+    `;
+    res.send(html);
+});
+
+// Vulnerable: Username in profile page
+app.get('/profile/:username', (req, res) => {
+    const username = req.params.username;
+    const html = `
+        <title>${username}'s Profile</title>
+        <div class="avatar">${username.charAt(0)}</div>
+        <h1>${username}</h1>
+    `;
+    res.send(html);
+});
+```
+
+#### ✅ Secure Code Examples
+
+```javascript
+const { JSDOM } = require('jsdom');
+const createDOMPurify = require('dompurify');
+
+// Initialize global sanitizer for server-side content
+const globalWindow = new JSDOM('').window;
+const globalPurify = createDOMPurify(globalWindow);
+
+function sanitizeServerSideContent(content) {
+    return globalPurify.sanitize(content);
+}
+
+// Secure: Sanitize search query before rendering
+app.get('/search', (req, res) => {
+    const query = req.query.q || '';
+    const html = `
+        <input type="text" name="q" value="${sanitizeServerSideContent(query)}">
+        <h3>Results for "${sanitizeServerSideContent(query)}":</h3>
+        <p>No posts found for "${sanitizeServerSideContent(query)}"</p>
+    `;
+    res.send(html);
+});
+
+// Secure: Sanitize username before rendering
+app.get('/profile/:username', (req, res) => {
+    const username = decodeURIComponent(req.params.username);
+    const html = `
+        <title>${sanitizeServerSideContent(username)}'s Profile</title>
+        <div class="avatar">${sanitizeServerSideContent(username.charAt(0))}</div>
+        <h1>${sanitizeServerSideContent(username)}</h1>
+    `;
+    res.send(html);
+});
+```
+
+### 2. Use Content Security Policy (CSP) Headers
+Add CSP headers to prevent execution of unauthorized scripts:
+
+```javascript
+app.use((req, res, next) => {
+    res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.quilljs.com");
+    next();
+});
+```
+
+### 3. Sanitize Rich Text Content
+When allowing users to input rich text (HTML), always sanitize on the server side:
+
+```javascript
+// Configure DOMPurify with allowed tags
+function sanitizeHTML(html) {
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'blockquote', 'code', 'pre'],
+        ALLOWED_ATTR: ['href', 'target', 'rel']
+    });
+}
+
+app.post('/profile/:username/edit', (req, res) => {
+    const { bio } = req.body;
+    const sanitizedBio = sanitizeHTML(bio);
+    // Save sanitized bio to database
+});
+```
+
+### 4. Encode URL Parameters
+Always encode/decode URL parameters properly:
+
+```javascript
+// Secure encoding
+const profileUrl = `/profile/${encodeURIComponent(username)}`;
+
+// Secure decoding
+const username = decodeURIComponent(req.params.username);
+```
+
+## Common XSS Attack Vectors
+
+1. **Search Queries**: User input in search boxes reflected in results
+2. **URL Parameters**: Username, IDs, or other parameters shown on the page
+3. **Form Inputs**: Pre-filled form values from query strings
+4. **User-Generated Content**: Comments, posts, profile bios
+5. **Error Messages**: Error text that includes user input
+
+## Testing for XSS Vulnerabilities
+
+Test with these common XSS payloads:
+- `<script>alert('XSS')</script>`
+- `<img src=x onerror=alert('XSS')>`
+- `"><script>alert('XSS')</script>`
+- `javascript:alert('XSS')`
+
+## Additional Security Measures
+
+1. **Use Template Engines with Auto-Escaping**: Consider using template engines like EJS, Pug, or Handlebars with auto-escaping enabled
+2. **Validate Input Types**: Ensure inputs match expected formats (email, numbers, etc.)
+3. **Set HttpOnly Cookies**: Prevent JavaScript access to session cookies
+4. **Use HTTPS**: Ensure all traffic is encrypted
+
+## References
+- [OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
+- [DOMPurify Documentation](https://github.com/cure53/DOMPurify)
+- [Content Security Policy Guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+
+## Enforcement
+This rule is ALWAYS APPLIED and must be followed in all code that renders user input in HTML contexts.

@@ -30,6 +30,17 @@ When updating an existing rule file:
 
 ## Active Security Rules
 
+### Cross-Site Scripting (XSS) Prevention
+- **Rule File**: [xss.mdc](.cursor/rules/xss.mdc)
+- **Date Added**: 2025-10-29
+- **Fixes Applied**: 6 XSS vulnerabilities fixed
+- **Description**: Comprehensive rules for preventing XSS attacks through proper input sanitization
+- **Key Requirements**:
+  - Always sanitize user input before rendering in HTML
+  - Use DOMPurify for both rich text content and server-side content sanitization
+  - Properly encode URL parameters
+  - Validate and sanitize all user-generated content
+
 ## Enforcement
 - This rule is ALWAYS APPLIED and cannot be bypassed
 - Any AI assistant that fails to follow this protocol should be corrected immediately
