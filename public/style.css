@@ -250,41 +250,6 @@ form[action="/search"] button {
     text-align: center;
 }
 
-.author-bio-block {
-    background: #f8f9fa;
-    border-left: 4px solid #764ba2;
-    padding: 1rem;
-    border-radius: 8px;
-    margin: 1rem 0 2rem 0;
-    font-size: 1.04rem;
-    line-height: 1.7;
-}
-.edit-profile-link {
-    display: inline-block;
-    padding: 0.4rem 1.2rem;
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    color: white;
-    border-radius: 16px;
-    text-decoration: none;
-    margin-top: 0.5rem;
-    font-size: 1rem;
-    transition: background 0.2s, box-shadow 0.2s;
-}
-.edit-profile-link:hover {
-    background: #667eea;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.13);
-}
-.bio-form textarea {
-    border: 2px solid #764ba2;
-    border-radius: 7px;
-    padding: 1rem;
-    font-size: 1rem;
-    font-family: inherit;
-}
-.bio-form button {
-    margin-top: 0.6rem;
-}
-
 /* Responsive design */
 @media (max-width: 600px) {
     .container {
