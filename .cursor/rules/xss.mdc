@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+version: 1.0.0
+lastUpdated: 2025-10-29
+---
+# Rule: Prevent XSS in Server-Rendered Node/Express Apps
+
+## Description
+Cross-site Scripting (XSS) occurs when user input is rendered unsanitized into web pages, enabling attackers to inject scripts. Always sanitize any user-generated or interpolated HTML content, even in server-side JavaScript.
+
+## Actionable Guidance
+- Use a proven server-side sanitizer library (e.g., dompurify + jsdom for Node)
+- **NEVER** inject raw user data into HTML—sanitize ALL dynamic content
+- Prefer using strict allowlists of safe tags and attributes if you must allow markup
+- Sanitize strings at the point of rendering into HTML
+- Forbid use of events (onerror, onclick, etc.) in input
+- Test for XSS in ALL new features or user inputs
+
+## Code Examples
+### Vulnerable Code
+```js
+// BAD: injects raw unsanitized input
+const html = `<h3>Results for "${query}":</h3>`;
+res.send(`<div>${html}</div>`);
+```
+### Safe Pattern (Using DOMPurify + jsdom)
+```js
+const DOMPurify = require('dompurify');
+const jsdomLib = require('jsdom');
+const globalWindow = new jsdomLib.JSDOM('').window;
+const globalPurify = DOMPurify(globalWindow);
+function sanitizeServerSideContent(content) {
+    return globalPurify.sanitize(content);
+}
+// ...
+const safeHtml = sanitizeServerSideContent(`<h3>Results for "${query}":</h3>`);
+res.send(`<div>${safeHtml}</div>`);
+```
+### Real Fix (from Bloggerish)
+- Search and profile rendering now uses:
+```js
+<title>Edit Profile - ${sanitizeServerSideContent(user.username)}</title>
+${sanitizeServerSideContent(query ? `<h3>Results for "${query}":</h3>` : '')}
+${sanitizeServerSideContent(query && results.length === 0 ? `<p>No posts found for "${query}"</p>` : '')}
+```
+
+## Status
+- [2025-10-29] Rule established. Fix applied via Mobb to all dynamic HTML interpolations found in user search/profile for Bloggerish.
+- **Append-only. Record each new instance/fix for project QA and compliance.**
+
+---

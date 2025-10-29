@@ -29,6 +29,7 @@ When updating an existing rule file:
 - **Ensure consistency** - new content should match the existing style and tone
 
 ## Active Security Rules
+- [XSS Prevention (xss.mdc)](./xss.mdc)
 
 ## Enforcement
 - This rule is ALWAYS APPLIED and cannot be bypassed
