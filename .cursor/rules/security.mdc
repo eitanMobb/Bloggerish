@@ -30,6 +30,12 @@ When updating an existing rule file:
 
 ## Active Security Rules
 
+### XSS Prevention
+- **Rule File**: `.cursor/rules/xss-prevention.mdc`
+- **Status**: Active
+- **Last Updated**: 2024
+- **Description**: Prevents Cross-Site Scripting vulnerabilities by requiring all user input to be sanitized before rendering in HTML templates.
+
 ## Enforcement
 - This rule is ALWAYS APPLIED and cannot be bypassed
 - Any AI assistant that fails to follow this protocol should be corrected immediately
