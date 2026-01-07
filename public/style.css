@@ -373,6 +373,115 @@ form[action="/search"] button {
     border-left: 3px solid #667eea;
 }
 
+/* Community page styles */
+.community-description {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.community-posts {
+    margin-top: 1rem;
+}
+
+.no-posts {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* Post header with pin button */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.post-header h2 {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Pin button styles */
+.pin-button {
+    background: #f8f9fa;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+    white-space: nowrap;
+    margin-top: 0.25rem;
+}
+
+.pin-button:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.pin-button.pinned {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.pin-button.pinned:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.pin-icon {
+    font-size: 1rem;
+}
+
+.pin-text {
+    font-weight: 500;
+}
+
+/* Pinned posts section */
+#pinned-posts-section {
+    margin-bottom: 3rem;
+}
+
+#pinned-posts-section h3 {
+    color: #667eea;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 0.5rem;
+}
+
+#pinned-posts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.post.pinned {
+    border: 2px solid #667eea;
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9ff 100%);
+    position: relative;
+}
+
+.post.pinned::before {
+    content: '📌';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.2rem;
+    opacity: 0.6;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     .container {
@@ -399,5 +508,14 @@ form[action="/search"] button {
     .button-link {
         text-align: center;
         width: 100%;
+    }
+    
+    .post-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pin-button {
+        align-self: flex-start;
     }
 }
