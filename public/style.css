@@ -109,6 +109,34 @@ nav a:hover {
     text-decoration: underline;
 }
 
+.share-button {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.share-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    text-decoration: none;
+}
+
+.shared-with {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: #f8f9fa;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    color: #666;
+    border-left: 4px solid #667eea;
+}
+
 .post-full {
     background: white;
     padding: 2rem;
@@ -250,6 +278,101 @@ form[action="/search"] button {
     text-align: center;
 }
 
+.share-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+}
+
+.share-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.share-form input {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.share-form input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-help {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.button-link {
+    color: #667eea;
+    text-decoration: none;
+    padding: 0.8rem 1.5rem;
+    border: 2px solid #667eea;
+    border-radius: 25px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.button-link:hover {
+    background-color: #667eea;
+    color: white;
+}
+
+.post-preview {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #667eea;
+}
+
+.post-preview p {
+    margin-bottom: 0.5rem;
+}
+
+.current-sharing {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-top: 2rem;
+}
+
+.current-sharing h3 {
+    color: #667eea;
+    margin-bottom: 1rem;
+}
+
+.current-sharing ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.current-sharing li {
+    padding: 0.5rem;
+    background: #f8f9fa;
+    margin-bottom: 0.5rem;
+    border-radius: 5px;
+    border-left: 3px solid #667eea;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     .container {
@@ -267,5 +390,14 @@ form[action="/search"] button {
     
     form[action="/search"] {
         flex-direction: column;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .button-link {
+        text-align: center;
+        width: 100%;
     }
 }

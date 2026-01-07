@@ -1,7 +1,16 @@
+const DOMPurify = require('dompurify');
+const jsdomLib = require('jsdom');
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
+
+const globalWindow = new jsdomLib.JSDOM('').window;
+const globalPurify = DOMPurify(globalWindow);
+
+function sanitizeServerSideContent(content) {
+    return globalPurify.sanitize(content);
+}
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -18,6 +27,7 @@ let posts = [
         content: "This is your first blog post. Feel free to add more posts and comments!",
         author: "Admin",
         timestamp: new Date().toISOString(),
+        sharedWith: [],
         comments: [
             {
                 id: 1,
@@ -46,9 +56,9 @@ app.get('/', (req, res) => {
         // Build post HTML
         postsHTML += `
             <div class="post">
-                <h2><a href="/post/${post.id}">${post.title}</a></h2>
-                <div class="post-meta">By ${post.author} on ${new Date(post.timestamp).toLocaleDateString()}</div>
-                <div class="post-content">${post.content.substring(0, 200)}${post.content.length > 200 ? '...' : ''}</div>
+                <h2><a href="/post/${post.id}">${sanitizeServerSideContent(post.title)}</a></h2>
+                <div class="post-meta">By ${sanitizeServerSideContent(post.author)} on ${new Date(post.timestamp).toLocaleDateString()}</div>
+                <div class="post-content">${sanitizeServerSideContent(post.content.substring(0, 200))}${post.content.length > 200 ? '...' : ''}</div>
                 <div class="post-actions">
                     <a href="/post/${post.id}">Read More</a> | 
                     <span>${post.comments.length} comment(s)</span>
@@ -102,8 +112,8 @@ app.get('/post/:id', (req, res) => {
         // Render comment HTML
         commentsHTML += `
             <div class="comment">
-                <div class="comment-author">${comment.author}</div>
-                <div class="comment-content">${comment.content}</div>
+                <div class="comment-author">${sanitizeServerSideContent(comment.author)}</div>
+                <div class="comment-content">${sanitizeServerSideContent(comment.content)}</div>
                 <div class="comment-date">${new Date(comment.timestamp).toLocaleDateString()}</div>
             </div>
         `;
@@ -115,7 +125,7 @@ app.get('/post/:id', (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${post.title} - Bloggerish</title>
+    <title>${sanitizeServerSideContent(post.title)} - Bloggerish</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -131,9 +141,13 @@ app.get('/post/:id', (req, res) => {
     <main>
         <div class="container">
             <article class="post-full">
-                <h1>${post.title}</h1>
-                <div class="post-meta">By ${post.author} on ${new Date(post.timestamp).toLocaleDateString()}</div>
-                <div class="post-content">${post.content}</div>
+                <h1>${sanitizeServerSideContent(post.title)}</h1>
+                <div class="post-meta">By ${sanitizeServerSideContent(post.author)} on ${new Date(post.timestamp).toLocaleDateString()}</div>
+                <div class="post-content">${sanitizeServerSideContent(post.content)}</div>
+                <div class="post-actions">
+                    <a href="/post/${post.id}/share" class="share-button">Share with Community</a>
+                    ${post.sharedWith && post.sharedWith.length > 0 ? `<div class="shared-with">Shared with: ${sanitizeServerSideContent(post.sharedWith.join(', '))}</div>` : ''}
+                </div>
             </article>
             
             <section class="comments-section">
@@ -208,6 +222,7 @@ app.post('/new-post', (req, res) => {
         content: content,
         author: author,
         timestamp: new Date().toISOString(),
+        sharedWith: [],
         comments: []
     };
     
@@ -251,8 +266,8 @@ app.get('/search', (req, res) => {
         results.forEach(post => {
             resultsHTML += `
                 <div class="post">
-                    <h2><a href="/post/${post.id}">${post.title}</a></h2>
-                    <div class="post-content">${post.content.substring(0, 200)}...</div>
+                    <h2><a href="/post/${post.id}">${sanitizeServerSideContent(post.title)}</a></h2>
+                    <div class="post-content">${sanitizeServerSideContent(post.content.substring(0, 200))}...</div>
                 </div>
             `;
         });
@@ -281,14 +296,14 @@ app.get('/search', (req, res) => {
         <div class="container">
             <h2>Search Posts</h2>
             <form action="/search" method="GET">
-                <input type="text" name="q" value="${query}" placeholder="Search posts...">
+                <input type="text" name="q" value="${sanitizeServerSideContent(query)}" placeholder="Search posts...">
                 <button type="submit">Search</button>
             </form>
             
-            ${query ? `<h3>Results for "${query}":</h3>` : ''}
+            ${sanitizeServerSideContent(query ? `<h3>Results for "${query}":</h3>` : '')}
             <div class="search-results">
                 ${resultsHTML}
-                ${query && results.length === 0 ? `<p>No posts found for "${query}"</p>` : ''}
+                ${sanitizeServerSideContent(query && results.length === 0 ? `<p>No posts found for "${query}"</p>` : '')}
             </div>
         </div>
     </main>
@@ -297,6 +312,106 @@ app.get('/search', (req, res) => {
     `;
     
     res.send(html);
+});
+
+// Share post form
+app.get('/post/:id/share', (req, res) => {
+    const postId = parseInt(req.params.id);
+    const post = posts.find(p => p.id === postId);
+    
+    if (!post) {
+        return res.status(404).send('<h1>Post not found</h1>');
+    }
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Post - Bloggerish</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="/"><img src="/logo.jpg" alt="Bloggerish"></a>
+        </div>
+        <nav>
+            <a href="/">Home</a> | 
+            <a href="/new-post">New Post</a>
+        </nav>
+    </header>
+    <main>
+        <div class="container">
+            <h2>Share Post: ${sanitizeServerSideContent(post.title)}</h2>
+            <div class="post-preview">
+                <p><strong>Author:</strong> ${sanitizeServerSideContent(post.author)}</p>
+                <p><strong>Content:</strong> ${sanitizeServerSideContent(post.content.substring(0, 150))}${post.content.length > 150 ? '...' : ''}</p>
+            </div>
+            <form class="share-form" action="/post/${post.id}/share" method="POST">
+                <label for="members">Enter community member names (comma-separated):</label>
+                <input type="text" name="members" id="members" placeholder="e.g., Alice, Bob, Charlie" required>
+                <p class="form-help">Separate multiple names with commas</p>
+                <div class="form-actions">
+                    <button type="submit">Share Post</button>
+                    <a href="/post/${post.id}" class="button-link">Cancel</a>
+                </div>
+            </form>
+            ${post.sharedWith && post.sharedWith.length > 0 ? `
+                <div class="current-sharing">
+                    <h3>Currently shared with:</h3>
+                    <ul>
+                        ${post.sharedWith.map(member => `<li>${sanitizeServerSideContent(member)}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    </main>
+</body>
+</html>
+    `;
+    
+    res.send(html);
+});
+
+// Handle share post
+app.post('/post/:id/share', (req, res) => {
+    const postId = parseInt(req.params.id);
+    const post = posts.find(p => p.id === postId);
+    
+    if (!post) {
+        return res.status(404).send('Post not found');
+    }
+    
+    const { members } = req.body;
+    
+    if (!members || !members.trim()) {
+        return res.status(400).send('Please provide at least one member name');
+    }
+    
+    // Parse member names (split by comma, trim whitespace, filter empty strings)
+    const memberNames = members.split(',')
+        .map(name => name.trim())
+        .filter(name => name.length > 0);
+    
+    if (memberNames.length === 0) {
+        return res.status(400).send('Please provide at least one valid member name');
+    }
+    
+    // Initialize sharedWith if it doesn't exist
+    if (!post.sharedWith) {
+        post.sharedWith = [];
+    }
+    
+    // Add new members (avoid duplicates)
+    memberNames.forEach(member => {
+        if (!post.sharedWith.includes(member)) {
+            post.sharedWith.push(member);
+        }
+    });
+    
+    res.redirect(`/post/${postId}`);
 });
 
 app.listen(PORT, () => {

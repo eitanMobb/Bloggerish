@@ -1,0 +1,106 @@
+---
+alwaysApply: true
+---
+
+# XSS (Cross-Site Scripting) Prevention Rules
+
+## Overview
+Cross-Site Scripting (XSS) vulnerabilities occur when user input is rendered directly into HTML without proper sanitization, allowing attackers to inject malicious scripts.
+
+## Critical Rule
+**ALWAYS sanitize user input before rendering it in HTML templates or responses.**
+
+## Implementation
+
+### Required Setup
+1. Install DOMPurify and jsdom:
+   ```bash
+   npm install dompurify jsdom
+   ```
+
+2. Set up server-side sanitization at the top of your Express app:
+   ```javascript
+   const DOMPurify = require('dompurify');
+   const jsdomLib = require('jsdom');
+   
+   const globalWindow = new jsdomLib.JSDOM('').window;
+   const globalPurify = DOMPurify(globalWindow);
+   
+   function sanitizeServerSideContent(content) {
+       return globalPurify.sanitize(content);
+   }
+   ```
+
+### When to Sanitize
+- **ALWAYS** sanitize user input from:
+  - Query parameters (`req.query.*`)
+  - URL parameters (`req.params.*`)
+  - Request body (`req.body.*`)
+  - Any data that comes from user input
+
+### Examples
+
+#### ❌ VULNERABLE CODE
+```javascript
+// Directly rendering user input in HTML template
+app.get('/search', (req, res) => {
+    const query = req.query.q || '';
+    const html = `
+        <input type="text" name="q" value="${query}" placeholder="Search...">
+        ${query ? `<h3>Results for "${query}":</h3>` : ''}
+    `;
+    res.send(html);
+});
+```
+
+#### ✅ SECURE CODE
+```javascript
+// Sanitizing user input before rendering
+app.get('/search', (req, res) => {
+    const query = req.query.q || '';
+    const html = `
+        <input type="text" name="q" value="${sanitizeServerSideContent(query)}" placeholder="Search...">
+        ${sanitizeServerSideContent(query ? `<h3>Results for "${query}":</h3>` : '')}
+    `;
+    res.send(html);
+});
+```
+
+#### ❌ VULNERABLE CODE
+```javascript
+// Rendering member name directly in HTML
+app.get('/shared', (req, res) => {
+    const memberName = req.query.member || '';
+    const html = `
+        <input type="text" name="member" value="${memberName}">
+        <h3>Posts shared with "${memberName}":</h3>
+    `;
+    res.send(html);
+});
+```
+
+#### ✅ SECURE CODE
+```javascript
+// Sanitizing member name before rendering
+app.get('/shared', (req, res) => {
+    const memberName = req.query.member || '';
+    const html = `
+        <input type="text" name="member" value="${sanitizeServerSideContent(memberName)}">
+        <h3>Posts shared with "${sanitizeServerSideContent(memberName)}":</h3>
+    `;
+    res.send(html);
+});
+```
+
+## Checklist
+Before rendering any user input in HTML:
+- [ ] Is this data from user input? (query params, body, URL params)
+- [ ] Is it being rendered in HTML? (templates, responses)
+- [ ] Have I sanitized it using `sanitizeServerSideContent()`?
+- [ ] Have I tested with malicious input (e.g., `<script>alert('XSS')</script>`)?
+
+## Additional Notes
+- DOMPurify removes dangerous HTML/JavaScript while preserving safe content
+- Always sanitize even if you think the input is "safe"
+- This applies to all template rendering, not just Express apps
+- Consider using template engines with built-in escaping (e.g., EJS with `<%=` instead of `<%-`)
