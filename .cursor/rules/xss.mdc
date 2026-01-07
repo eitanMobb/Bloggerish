@@ -1,0 +1,136 @@
+---
+alwaysApply: true
+---
+
+# XSS (Cross-Site Scripting) Prevention Rules
+
+## Overview
+Cross-Site Scripting (XSS) vulnerabilities occur when user-supplied data is rendered in HTML without proper sanitization, allowing attackers to inject malicious scripts that execute in other users' browsers.
+
+## Critical Rule
+**ALWAYS sanitize ALL user-generated content before rendering it in HTML templates.**
+
+## Prevention Guidelines
+
+### 1. Server-Side Sanitization
+- **ALWAYS** use DOMPurify or similar sanitization library for all user input that will be rendered in HTML
+- Sanitize data at the point of rendering, not just at input
+- Never trust user input, even if it's been validated
+
+### 2. Required Implementation
+When rendering user-generated content in HTML templates:
+- Use `sanitizeServerSideContent()` function (or equivalent) for all dynamic content
+- Apply sanitization to: post titles, content, author names, comments, search queries, and any other user-supplied data
+
+### 3. Code Examples
+
+#### ❌ VULNERABLE CODE (DO NOT USE):
+```javascript
+// Directly rendering user input without sanitization
+const html = `<h1>${post.title}</h1>`;
+const html = `<div>${query}</div>`;
+const html = `<p>Results for "${query}"</p>`;
+```
+
+#### ✅ SECURE CODE (ALWAYS USE):
+```javascript
+// Sanitize all user-generated content
+const html = `<h1>${sanitizeServerSideContent(post.title)}</h1>`;
+const html = `<div>${sanitizeServerSideContent(query)}</div>`;
+const html = `<p>Results for "${sanitizeServerSideContent(query)}"</p>`;
+```
+
+### 4. Implementation Pattern
+```javascript
+// Setup (at top of file)
+const DOMPurify = require('dompurify');
+const jsdomLib = require('jsdom');
+const globalWindow = new jsdomLib.JSDOM('').window;
+const globalPurify = DOMPurify(globalWindow);
+
+function sanitizeServerSideContent(content) {
+    return globalPurify.sanitize(content);
+}
+
+// Usage (when rendering)
+const html = `<div>${sanitizeServerSideContent(userInput)}</div>`;
+```
+
+## Areas Requiring Sanitization
+
+### Always Sanitize:
+- Post titles, content, and author names
+- Comment content and author names
+- Search queries
+- User names and member names
+- Any data from `req.body`, `req.query`, or `req.params` that gets rendered
+- Shared member names and any community member data
+
+### Specific Fixes Applied
+
+#### Fix 1: Search Query Sanitization
+**Vulnerable:**
+```javascript
+<input type="text" name="q" value="${query}" placeholder="Search posts...">
+```
+
+**Fixed:**
+```javascript
+<input type="text" name="q" value="${sanitizeServerSideContent(query)}" placeholder="Search posts...">
+```
+
+#### Fix 2: Search Results Display
+**Vulnerable:**
+```javascript
+${query ? `<h3>Results for "${query}":</h3>` : ''}
+${query && results.length === 0 ? `<p>No posts found for "${query}"</p>` : ''}
+```
+
+**Fixed:**
+```javascript
+${sanitizeServerSideContent(query ? `<h3>Results for "${query}":</h3>` : '')}
+${sanitizeServerSideContent(query && results.length === 0 ? `<p>No posts found for "${query}"</p>` : '')}
+```
+
+#### Fix 3: Post and Comment Content
+**Vulnerable:**
+```javascript
+<h1>${post.title}</h1>
+<div class="post-content">${post.content}</div>
+<div class="comment-author">${comment.author}</div>
+```
+
+**Fixed:**
+```javascript
+<h1>${sanitizeServerSideContent(post.title)}</h1>
+<div class="post-content">${sanitizeServerSideContent(post.content)}</div>
+<div class="comment-author">${sanitizeServerSideContent(comment.author)}</div>
+```
+
+#### Fix 4: Sharing Feature
+**Vulnerable:**
+```javascript
+<h2>Share Post: ${post.title}</h2>
+${post.sharedWith.map(member => `<li>${member}</li>`).join('')}
+```
+
+**Fixed:**
+```javascript
+<h2>Share Post: ${sanitizeServerSideContent(post.title)}</h2>
+${post.sharedWith.map(member => `<li>${sanitizeServerSideContent(member)}</li>`).join('')}
+```
+
+## Testing Checklist
+- [ ] All user input fields are sanitized before rendering
+- [ ] Search queries are sanitized
+- [ ] Post content and metadata are sanitized
+- [ ] Comments are sanitized
+- [ ] Shared member names are sanitized
+- [ ] No raw user input appears in HTML output
+
+## Dependencies
+- `dompurify`: ^3.2.6
+- `jsdom`: ^26.1.0
+
+## Last Updated
+2024-12-19
